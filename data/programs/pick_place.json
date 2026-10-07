@@ -1,0 +1,13 @@
+{
+  "name": "pick_place",
+  "speed": 50,
+  "steps": [
+    { "op": "moveJ",   "pose": [200, 50, 120, 0],  "gripper": 0 },
+    { "op": "moveL",   "pose": [200, 50,  40, 0],  "gripper": 100 },
+    { "op": "moveL",   "pose": [200, 50, 120, 0] },
+    { "op": "moveJ",   "pose": [ 50, 220, 120, 90] },
+    { "op": "moveL",   "pose": [ 50, 220,  40, 90], "gripper": 0 },
+    { "op": "wait",    "ms": 500 },
+    { "op": "moveL",   "pose": [ 50, 220, 120, 90] }
+  ]
+}

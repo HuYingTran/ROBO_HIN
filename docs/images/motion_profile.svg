@@ -1,0 +1,50 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 660 320" width="660" height="320" font-family="Segoe UI, Roboto, Helvetica, Arial, sans-serif">
+  <style>
+    .t { font-size:12px; fill:#333; }
+    .h { font-size:13px; font-weight:700; fill:#111; }
+  </style>
+  <defs>
+    <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto">
+      <path d="M0,0 L10,5 L0,10 z" fill="#333"/>
+    </marker>
+  </defs>
+  <rect width="660" height="320" fill="#fafafa"/>
+  <text x="330" y="26" text-anchor="middle" font-size="16" font-weight="700" fill="#111">Profile vận tốc của một chuyển động</text>
+
+  <!-- phase backgrounds -->
+  <rect x="60" y="60" width="120" height="200" fill="#e3f2fd"/>
+  <rect x="180" y="60" width="260" height="200" fill="#e8f5e9"/>
+  <rect x="440" y="60" width="120" height="200" fill="#fff3e0"/>
+
+  <!-- axes -->
+  <path d="M60,260 H610" stroke="#333" stroke-width="2" marker-end="url(#a)"/>
+  <path d="M60,260 V50" stroke="#333" stroke-width="2" marker-end="url(#a)"/>
+  <text x="616" y="264" class="h">t</text>
+  <text x="44" y="52" class="h">v</text>
+
+  <!-- vmax -->
+  <path d="M60,100 H440" stroke="#999" stroke-dasharray="4 4"/>
+  <text x="54" y="104" text-anchor="end" class="h">vmax</text>
+
+  <!-- trapezoid -->
+  <path d="M60,260 L180,100 L440,100 L560,260" stroke="#1565c0" stroke-width="3" fill="none"/>
+  <!-- s-curve -->
+  <path d="M60,260 C110,260 140,100 200,100 L420,100 C480,100 510,260 560,260" stroke="#d81b60" stroke-width="2.5" stroke-dasharray="7 5" fill="none"/>
+
+  <!-- labels -->
+  <text x="120" y="80" text-anchor="middle" class="h" fill="#1565c0">Tăng tốc</text>
+  <text x="150" y="250" text-anchor="middle" class="t">a = +amax</text>
+  <text x="310" y="80" text-anchor="middle" class="h" fill="#2e7d32">Chạy đều</text>
+  <text x="310" y="200" text-anchor="middle" class="t">v = vmax</text>
+  <text x="500" y="80" text-anchor="middle" class="h" fill="#e65100">Giảm tốc</text>
+  <text x="470" y="250" text-anchor="middle" class="t">a = −amax</text>
+
+  <text x="180" y="278" text-anchor="middle" class="t">t₁</text>
+  <text x="440" y="278" text-anchor="middle" class="t">t₂</text>
+  <text x="560" y="278" text-anchor="middle" class="t">t₃</text>
+  <text x="310" y="150" text-anchor="middle" class="t">Diện tích dưới đường = quãng đường khớp</text>
+
+  <!-- legend -->
+  <path d="M80,300 H120" stroke="#1565c0" stroke-width="3"/><text x="126" y="304" class="t">Hình thang (v1.0)</text>
+  <path d="M280,300 H320" stroke="#d81b60" stroke-width="2.5" stroke-dasharray="7 5"/><text x="326" y="304" class="t">S-curve — giới hạn jerk, ít rung hơn</text>
+</svg>

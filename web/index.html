@@ -1,0 +1,263 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0f1216">
+<title>ROBO HIN</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23f97316'/%3E%3Cpath d='M8 24V9h3v6h10V9h3v15h-3v-6H11v6z' fill='%23fff'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="style.css">
+</head>
+<body class="viewer">
+
+<!-- ============ Thanh trên ============ -->
+<header class="top">
+  <div class="brand"><span class="logo">H</span><span class="brand-name">ROBO HIN</span></div>
+  <div class="top-status">
+    <span class="conn" id="conn"><i></i><b>Đang kết nối…</b></span>
+    <span class="badge" id="stateBadge">—</span>
+    <span class="badge ghost" id="homedBadge">Chưa homing</span>
+    <span class="badge ghost hide-sm" id="progBadge" hidden></span>
+  </div>
+  <div class="top-actions">
+    <span class="ctl-info" id="ctlInfo">Đang xem</span>
+    <button class="btn" id="btnControl">Nhận điều khiển</button>
+    <button class="estop" id="btnEstop" title="Dừng khẩn (phím Space)">
+      <span>DỪNG KHẨN</span><kbd>Space</kbd>
+    </button>
+  </div>
+</header>
+
+<div class="banner" id="banner" hidden>Mất kết nối với robot — đang kết nối lại…</div>
+
+<main class="layout">
+
+  <!-- ============ Cột trái: mô phỏng ============ -->
+  <section class="col col-sim">
+    <div class="panel sim">
+      <div class="panel-head">
+        <h2>Mô phỏng</h2>
+        <div class="seg small" id="viewOpts">
+          <label><input type="checkbox" id="optTrail" checked> Vết TCP</label>
+          <button class="btn tiny" id="btnClearTrail">Xóa vết</button>
+        </div>
+      </div>
+      <div class="canvas-wrap">
+        <canvas id="sim"></canvas>
+        <div class="canvas-hint" id="simHint">Nhấn vào vùng làm việc để đặt đích</div>
+        <div class="canvas-coord" id="simCoord"></div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-head"><h2>Vị trí TCP</h2><span class="muted" id="elbowNow">Khuỷu —</span></div>
+      <div class="readout">
+        <div><label>X</label><output id="rX">—</output><small>mm</small></div>
+        <div><label>Y</label><output id="rY">—</output><small>mm</small></div>
+        <div><label>Z</label><output id="rZ">—</output><small>mm</small></div>
+        <div><label>φ</label><output id="rA">—</output><small>°</small></div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-head"><h2>Đích</h2><span class="muted" id="targetInfo"></span></div>
+      <div class="target-grid">
+        <label>X<input type="number" step="0.1" id="tX"></label>
+        <label>Y<input type="number" step="0.1" id="tY"></label>
+        <label>Z<input type="number" step="0.1" id="tZ"></label>
+        <label>φ<input type="number" step="1" id="tA"></label>
+        <label class="span2">Nghiệm khuỷu
+          <select id="elbowSel" data-ctl>
+            <option value="N">Gần nhất</option>
+            <option value="L">Trái (θ3 &gt; 0)</option>
+            <option value="R">Phải (θ3 &lt; 0)</option>
+          </select>
+        </label>
+        <button class="btn span2" id="btnTargetHere">Lấy vị trí hiện tại</button>
+      </div>
+      <div class="row gap">
+        <button class="btn primary grow" id="btnGoJ" data-ctl>Chạy PTP (moveJ)</button>
+        <button class="btn primary grow" id="btnGoL" data-ctl>Chạy thẳng (moveL)</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ Cột giữa: điều khiển ============ -->
+  <section class="col col-ctl">
+    <div class="panel">
+      <div class="panel-head">
+        <h2>Tốc độ &amp; tay kẹp</h2>
+      </div>
+      <div class="slider-row">
+        <label>Tốc độ</label>
+        <input type="range" min="1" max="100" value="30" id="speed" data-ctl>
+        <output id="speedOut">30%</output>
+      </div>
+      <div class="slider-row">
+        <label>Độ kẹp</label>
+        <input type="range" min="0" max="100" value="0" id="grip" data-ctl>
+        <output id="gripOut">0%</output>
+      </div>
+      <div class="row gap">
+        <button class="btn grow" id="btnOpen" data-ctl>Mở</button>
+        <button class="btn grow" id="btnClose" data-ctl>Kẹp</button>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-head">
+        <h2>Chế độ jog</h2>
+        <div class="seg" id="stepSel">
+          <button data-step="0.1">0.1</button>
+          <button data-step="1">1</button>
+          <button data-step="10">10</button>
+          <button data-step="0" class="on">Liên tục</button>
+        </div>
+      </div>
+      <p class="hint">Liên tục: giữ nút để chạy, thả để dừng. Bước: mỗi lần nhấn đi đúng 0.1 / 1 / 10 mm (hoặc °).</p>
+    </div>
+
+    <div class="panel">
+      <div class="panel-head"><h2>Jog khớp</h2></div>
+      <div id="jointRows" class="joint-rows"></div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-head"><h2>Jog Descartes</h2><span class="muted">Phím ←→↑↓ · PgUp/PgDn · Q/E</span></div>
+      <div class="cart-pad">
+        <div class="pad-xy">
+          <span></span><button class="jog" data-axis="Y" data-dir="1" data-ctl>Y+</button><span></span>
+          <button class="jog" data-axis="X" data-dir="-1" data-ctl>X−</button>
+          <span class="pad-center">XY</span>
+          <button class="jog" data-axis="X" data-dir="1" data-ctl>X+</button>
+          <span></span><button class="jog" data-axis="Y" data-dir="-1" data-ctl>Y−</button><span></span>
+        </div>
+        <div class="pad-col">
+          <button class="jog" data-axis="Z" data-dir="1" data-ctl>Z+</button>
+          <button class="jog" data-axis="Z" data-dir="-1" data-ctl>Z−</button>
+        </div>
+        <div class="pad-col">
+          <button class="jog" data-axis="A" data-dir="1" data-ctl>φ+</button>
+          <button class="jog" data-axis="A" data-dir="-1" data-ctl>φ−</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ Cột phải: teach, trạng thái, console ============ -->
+  <section class="col col-side">
+    <div class="panel">
+      <div class="panel-head"><h2>Teach &amp; Play</h2><span class="muted" id="progDirty"></span></div>
+      <div class="row gap">
+        <select id="progList" class="grow"><option value="">— chương trình —</option></select>
+        <button class="btn" id="btnProgLoad">Mở</button>
+        <button class="btn" id="btnProgNew">Mới</button>
+      </div>
+      <div class="row gap">
+        <input id="progName" class="grow" placeholder="ten_chuong_trinh" pattern="[A-Za-z0-9_-]{1,31}">
+        <label class="inline">Tốc độ <input type="number" id="progSpeed" min="1" max="100" value="50" class="num"> %</label>
+      </div>
+      <div class="steps-wrap">
+        <table class="steps">
+          <thead><tr><th>#</th><th>Lệnh</th><th>Giá trị</th><th>Kẹp</th><th></th></tr></thead>
+          <tbody id="steps"><tr class="empty"><td colspan="5">Chưa có bước nào — thêm điểm từ vị trí hiện tại.</td></tr></tbody>
+        </table>
+      </div>
+      <div class="row gap wrap">
+        <button class="btn small" id="addJ">+ Điểm PTP</button>
+        <button class="btn small" id="addL">+ Điểm thẳng</button>
+        <button class="btn small" id="addWait">+ Chờ</button>
+        <button class="btn small" id="addGrip">+ Kẹp</button>
+        <button class="btn small" id="addOpen">+ Mở</button>
+      </div>
+      <div class="row gap wrap">
+        <button class="btn primary" id="btnRun" data-ctl>▶ Chạy</button>
+        <button class="btn" id="btnPause" data-ctl>⏸ Tạm dừng</button>
+        <button class="btn" id="btnStopProg" data-ctl>■ Dừng</button>
+        <label class="inline"><input type="checkbox" id="progLoop"> Lặp</label>
+        <span class="grow"></span>
+        <button class="btn small" id="btnProgSave">Lưu</button>
+        <button class="btn small danger" id="btnProgDel">Xóa</button>
+      </div>
+      <div class="row gap">
+        <button class="btn small" id="btnExport">Xuất .json</button>
+        <label class="btn small file">Nhập .json<input type="file" id="importFile" accept=".json,application/json"></label>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-head"><h2>Trạng thái</h2><span class="muted" id="faultText"></span></div>
+      <div class="row gap wrap">
+        <button class="btn" id="btnEnable" data-ctl>Bật driver</button>
+        <button class="btn" id="btnDisable" data-ctl>Tắt driver</button>
+        <button class="btn" id="btnHome" data-ctl>Homing</button>
+        <button class="btn" id="btnStop" data-ctl>Dừng</button>
+        <button class="btn warn" id="btnClear" data-ctl>Xóa lỗi</button>
+      </div>
+      <table class="diag">
+        <thead><tr><th></th><th>J1</th><th>J2</th><th>J3</th><th>J4</th></tr></thead>
+        <tbody>
+          <tr><th>Encoder</th><td id="e0">—</td><td id="e1">—</td><td id="e2">—</td><td id="e3">—</td></tr>
+          <tr><th>Sai số</th><td id="f0">—</td><td id="f1">—</td><td id="f2">—</td><td id="f3">—</td></tr>
+        </tbody>
+      </table>
+      <div class="chips">
+        <span class="chip" id="cEstop">E-stop</span>
+        <span class="chip" id="cZmin">Limit Z dưới</span>
+        <span class="chip" id="cZmax">Limit Z trên</span>
+        <span class="chip ghost" id="cNet">WiFi —</span>
+        <span class="chip ghost" id="cHeap">Heap —</span>
+      </div>
+    </div>
+
+    <div class="panel console">
+      <div class="panel-head"><h2>Console</h2><button class="btn tiny" id="btnClearLog">Xóa</button></div>
+      <pre id="log"></pre>
+      <form id="gcodeForm" class="row gap">
+        <input id="gcode" class="grow mono" placeholder="G-code, vd. G1 X200 Y50 Z40 F40" autocomplete="off" data-ctl>
+        <button class="btn" data-ctl>Gửi</button>
+      </form>
+    </div>
+
+    <details class="panel settings">
+      <summary><h2>Cài đặt</h2></summary>
+      <h3>WiFi</h3>
+      <form id="wifiForm" class="stack">
+        <input id="wifiSsid" placeholder="SSID" required maxlength="32">
+        <input id="wifiPass" type="password" placeholder="Mật khẩu WiFi" maxlength="64">
+        <button class="btn">Lưu &amp; khởi động lại</button>
+      </form>
+      <h3>Mật khẩu web</h3>
+      <form id="pwForm" class="stack">
+        <input id="pwNew" type="password" placeholder="Mật khẩu mới (để trống = tắt đăng nhập)">
+        <button class="btn">Đổi mật khẩu</button>
+      </form>
+      <h3>Cập nhật OTA</h3>
+      <form id="otaForm" class="stack">
+        <select id="otaTarget">
+          <option value="fw">Firmware (firmware.bin)</option>
+          <option value="fs">Giao diện web (littlefs.bin)</option>
+        </select>
+        <input type="file" id="otaFile" accept=".bin" required>
+        <progress id="otaProg" max="100" value="0" hidden></progress>
+        <button class="btn">Nạp</button>
+        <p class="hint">Robot phải ở trạng thái <b>Disabled</b>.</p>
+      </form>
+      <p class="hint" id="fwInfo"></p>
+    </details>
+  </section>
+</main>
+
+<!-- ============ Đăng nhập ============ -->
+<div class="overlay" id="login" hidden>
+  <form class="dialog" id="loginForm">
+    <div class="brand"><span class="logo">H</span><span class="brand-name">ROBO HIN</span></div>
+    <input type="password" id="loginPw" placeholder="Mật khẩu" autocomplete="current-password" required>
+    <button class="btn primary">Đăng nhập</button>
+    <p class="err" id="loginErr"></p>
+  </form>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>

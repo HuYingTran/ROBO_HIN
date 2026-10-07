@@ -1,0 +1,14 @@
+{
+  "name": "HinRobotSDK",
+  "version": "1.0.0",
+  "description": "SDK điều khiển tay máy SCARA TRRR cho ESP32 · A4988 · NEMA 17 · MT6701",
+  "keywords": ["robot", "scara", "stepper", "a4988", "mt6701", "esp32"],
+  "authors": [{ "name": "HIN", "email": "huynh.technical@gmail.com" }],
+  "license": "MIT",
+  "frameworks": "*",
+  "platforms": "*",
+  "build": {
+    "flags": ["-std=gnu++17"],
+    "unflags": ["-std=gnu++11"]
+  }
+}
